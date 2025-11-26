@@ -1,6 +1,5 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useTheme } from '../../contexts/ThemeContext';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { CopyButton } from '../ui/CopyButton';
 import type { JWTHeader } from '../../types/jwt.types';
 
@@ -9,52 +8,51 @@ interface HeaderDisplayProps {
 }
 
 export function HeaderDisplay({ header }: HeaderDisplayProps) {
-  const { theme } = useTheme();
   const formattedJSON = JSON.stringify(header, null, 2);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-white">
           JWT Header
         </h3>
         <CopyButton text={formattedJSON} label="Copy Header" />
       </div>
 
-      <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div className="rounded-lg overflow-hidden border border-gray-700">
         <SyntaxHighlighter
           language="json"
-          style={theme === 'dark' ? vscDarkPlus : vs}
+          style={vscDarkPlus}
           customStyle={{
             margin: 0,
             padding: '1rem',
             fontSize: '0.875rem',
-            background: theme === 'dark' ? '#1e1e1e' : '#f6f8fa',
+            background: '#1e1e1e',
           }}
         >
           {formattedJSON}
         </SyntaxHighlighter>
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
+      <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
+        <h4 className="text-sm font-semibold text-blue-300 mb-2">
           Header Information
         </h4>
         <dl className="space-y-2 text-sm">
           <div>
-            <dt className="text-blue-700 dark:text-blue-400 font-medium">Algorithm:</dt>
-            <dd className="text-blue-900 dark:text-blue-200 mt-1">
+            <dt className="text-blue-400 font-medium">Algorithm:</dt>
+            <dd className="text-blue-200 mt-1">
               {header.alg} - {getAlgorithmDescription(header.alg)}
             </dd>
           </div>
           <div>
-            <dt className="text-blue-700 dark:text-blue-400 font-medium">Type:</dt>
-            <dd className="text-blue-900 dark:text-blue-200 mt-1">{header.typ}</dd>
+            <dt className="text-blue-400 font-medium">Type:</dt>
+            <dd className="text-blue-200 mt-1">{header.typ}</dd>
           </div>
           {header.kid && (
             <div>
-              <dt className="text-blue-700 dark:text-blue-400 font-medium">Key ID:</dt>
-              <dd className="text-blue-900 dark:text-blue-200 mt-1 font-mono text-xs">
+              <dt className="text-blue-400 font-medium">Key ID:</dt>
+              <dd className="text-blue-200 mt-1 font-mono text-xs">
                 {header.kid}
               </dd>
             </div>
