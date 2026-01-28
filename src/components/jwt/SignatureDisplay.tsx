@@ -1,24 +1,62 @@
 import { useState } from 'react';
 import { verifyJWT } from '../../utils/jwt.verify';
 import { CopyButton } from '../ui/CopyButton';
-import type { DecodedJWT, VerificationResult } from '../../types/jwt.types';
+import { MaskedPartIndicator } from './MaskedPartIndicator';
+import type { DecodedJWT, VerificationResult, PartialDecodedJWT } from '../../types/jwt.types';
 
 interface SignatureDisplayProps {
-  jwt: DecodedJWT;
+  jwt: DecodedJWT | PartialDecodedJWT;
 }
 
 export function SignatureDisplay({ jwt }: SignatureDisplayProps) {
-  const [algorithm, setAlgorithm] = useState(jwt.header.alg);
+  // Check if this is a partial decode result
+  const isPartial = 'isComplete' in jwt;
+  const partialJwt = isPartial ? (jwt as PartialDecodedJWT) : null;
+
+  // Check if signature is masked/invalid
+  if (partialJwt && partialJwt.signature.status !== 'decoded') {
+    return (
+      <MaskedPartIndicator
+        partName="Signature"
+        status={partialJwt.signature.status as 'masked' | 'invalid'}
+        rawValue={partialJwt.signature.rawValue}
+        error={partialJwt.signature.error}
+      />
+    );
+  }
+
+  // Get the signature value
+  const signatureValue = partialJwt
+    ? partialJwt.signature.value!
+    : (jwt as DecodedJWT).signature;
+
+  // Get the algorithm - use header if available, otherwise default to HS256
+  const headerAlg = partialJwt
+    ? partialJwt.header.value?.alg
+    : (jwt as DecodedJWT).header.alg;
+
+  const [algorithm, setAlgorithm] = useState(headerAlg || 'HS256');
   const [key, setKey] = useState('');
   const [showKey, setShowKey] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+
+  // Check if verification is possible (need complete token)
+  const canVerify = !isPartial || partialJwt?.isComplete;
 
   const isHMAC = algorithm.startsWith('HS');
   const isRSA = algorithm.startsWith('RS');
   const isECDSA = algorithm.startsWith('ES');
 
   const handleVerify = async () => {
+    if (!canVerify) {
+      setVerificationResult({
+        valid: false,
+        error: 'Cannot verify: token has masked or invalid parts',
+      });
+      return;
+    }
+
     if (!key.trim()) {
       setVerificationResult({
         valid: false,
@@ -67,7 +105,7 @@ mwIDAQAB
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Signature Verification
         </h3>
-        <CopyButton text={jwt.signature} label="Copy Signature" />
+        <CopyButton text={signatureValue} label="Copy Signature" />
       </div>
 
       {/* Signature Value */}
@@ -76,7 +114,7 @@ mwIDAQAB
           Signature:
         </h4>
         <pre className="text-xs font-mono text-gray-700 dark:text-gray-300 overflow-x-auto break-all whitespace-pre-wrap">
-          {jwt.signature}
+          {signatureValue}
         </pre>
       </div>
 
@@ -152,11 +190,20 @@ mwIDAQAB
       {/* Verify Button */}
       <button
         onClick={handleVerify}
-        disabled={isVerifying || !key.trim()}
+        disabled={isVerifying || !key.trim() || !canVerify}
         className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
       >
         {isVerifying ? 'Verifying...' : 'Verify Signature'}
       </button>
+
+      {/* Warning if verification not possible */}
+      {!canVerify && (
+        <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-3">
+          <p className="text-sm text-yellow-300">
+            Signature verification is not available because the token has masked or invalid parts.
+          </p>
+        </div>
+      )}
 
       {/* Verification Result */}
       {verificationResult && (

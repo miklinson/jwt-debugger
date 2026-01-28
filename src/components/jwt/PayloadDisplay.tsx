@@ -1,15 +1,38 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { CopyButton } from '../ui/CopyButton';
+import { MaskedPartIndicator } from './MaskedPartIndicator';
 import { formatTimestamp } from '../../utils/claims.utils';
-import type { JWTPayload, ValidationResult } from '../../types/jwt.types';
+import type { JWTPayload, ValidationResult, PartialDecodePart } from '../../types/jwt.types';
 
 interface PayloadDisplayProps {
-  payload: JWTPayload;
+  payload: JWTPayload | PartialDecodePart<JWTPayload>;
   validation: ValidationResult | null;
 }
 
-export function PayloadDisplay({ payload, validation }: PayloadDisplayProps) {
+export function PayloadDisplay({ payload: payloadProp, validation }: PayloadDisplayProps) {
+  // Check if this is a partial decode result and extract the actual payload
+  const isPartial = 'status' in payloadProp;
+
+  if (isPartial) {
+    const partialPayload = payloadProp as PartialDecodePart<JWTPayload>;
+
+    if (partialPayload.status !== 'decoded' || !partialPayload.value) {
+      return (
+        <MaskedPartIndicator
+          partName="Payload"
+          status={partialPayload.status as 'masked' | 'invalid'}
+          rawValue={partialPayload.rawValue}
+          error={partialPayload.error}
+        />
+      );
+    }
+  }
+
+  const payload: JWTPayload = isPartial
+    ? (payloadProp as PartialDecodePart<JWTPayload>).value!
+    : (payloadProp as JWTPayload);
+
   const formattedJSON = JSON.stringify(payload, null, 2);
 
   const hasTimeClaims = payload.exp || payload.iat || payload.nbf;

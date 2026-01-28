@@ -1,13 +1,36 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { CopyButton } from '../ui/CopyButton';
-import type { JWTHeader } from '../../types/jwt.types';
+import { MaskedPartIndicator } from './MaskedPartIndicator';
+import type { JWTHeader, PartialDecodePart } from '../../types/jwt.types';
 
 interface HeaderDisplayProps {
-  header: JWTHeader;
+  header: JWTHeader | PartialDecodePart<JWTHeader>;
 }
 
-export function HeaderDisplay({ header }: HeaderDisplayProps) {
+export function HeaderDisplay({ header: headerProp }: HeaderDisplayProps) {
+  // Check if this is a partial decode result and extract the actual header
+  const isPartial = 'status' in headerProp;
+
+  if (isPartial) {
+    const partialHeader = headerProp as PartialDecodePart<JWTHeader>;
+
+    if (partialHeader.status !== 'decoded' || !partialHeader.value) {
+      return (
+        <MaskedPartIndicator
+          partName="Header"
+          status={partialHeader.status as 'masked' | 'invalid'}
+          rawValue={partialHeader.rawValue}
+          error={partialHeader.error}
+        />
+      );
+    }
+  }
+
+  const header: JWTHeader = isPartial
+    ? (headerProp as PartialDecodePart<JWTHeader>).value!
+    : (headerProp as JWTHeader);
+
   const formattedJSON = JSON.stringify(header, null, 2);
 
   return (

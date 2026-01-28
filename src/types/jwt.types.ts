@@ -39,3 +39,20 @@ export type JWTAlgorithm =
   | 'HS256' | 'HS384' | 'HS512'
   | 'RS256' | 'RS384' | 'RS512'
   | 'ES256' | 'ES384' | 'ES512';
+
+export type DecodeStatus = 'decoded' | 'masked' | 'invalid';
+
+export interface PartialDecodePart<T> {
+  status: DecodeStatus;
+  value: T | null;
+  rawValue: string;
+  error?: string;
+}
+
+export interface PartialDecodedJWT {
+  header: PartialDecodePart<JWTHeader>;
+  payload: PartialDecodePart<JWTPayload>;
+  signature: PartialDecodePart<string>;
+  raw: string;
+  isComplete: boolean;
+}

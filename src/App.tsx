@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useJWTDecoder } from './hooks/useJWTDecoder';
+import { usePartialJWTDecoder } from './hooks/useJWTDecoder';
 import { useTokenValidation } from './hooks/useTokenValidation';
 import { Header } from './components/layout/Header';
 import { SplitPane } from './components/layout/SplitPane';
@@ -9,8 +9,13 @@ import { ValidationWarnings } from './components/jwt/ValidationWarnings';
 
 function App() {
   const [rawToken, setRawToken] = useState('');
-  const decodedJWT = useJWTDecoder(rawToken);
-  const validation = useTokenValidation(decodedJWT?.payload);
+  const decodedJWT = usePartialJWTDecoder(rawToken);
+
+  // Get payload for validation - only if it was successfully decoded
+  const payloadValue = decodedJWT?.payload.status === 'decoded'
+    ? decodedJWT.payload.value ?? undefined
+    : undefined;
+  const validation = useTokenValidation(payloadValue);
 
   return (
     <div className="min-h-screen bg-gray-900">

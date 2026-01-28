@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { parseJWT } from '../utils/jwt.utils';
-import type { DecodedJWT } from '../types/jwt.types';
+import { parseJWT, parsePartialJWT } from '../utils/jwt.utils';
+import type { DecodedJWT, PartialDecodedJWT } from '../types/jwt.types';
 
 /**
  * Hook to decode a JWT token
@@ -13,5 +13,19 @@ export function useJWTDecoder(token: string): DecodedJWT | null {
     }
 
     return parseJWT(token.trim());
+  }, [token]);
+}
+
+/**
+ * Hook to decode a JWT token with partial support
+ * Returns partial results even if some parts are masked/invalid
+ */
+export function usePartialJWTDecoder(token: string): PartialDecodedJWT | null {
+  return useMemo(() => {
+    if (!token || token.trim() === '') {
+      return null;
+    }
+
+    return parsePartialJWT(token.trim());
   }, [token]);
 }
