@@ -58,9 +58,9 @@ export function MaskedPartIndicator({
         </div>
       </div>
 
-      <div className="bg-gray-800 rounded p-3 mt-4">
-        <p className="text-xs text-gray-400 mb-1">Raw value:</p>
-        <code className="text-sm font-mono text-gray-300 break-all">{rawValue}</code>
+      <div className="bg-gray-100 dark:bg-gray-800 rounded p-3 mt-4">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Raw value:</p>
+        <code className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all">{rawValue}</code>
       </div>
 
       {error && (
